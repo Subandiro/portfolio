@@ -371,34 +371,95 @@ filters.forEach((filter) => filter.addEventListener("click", () => {
   });
 }));
 
-// Certificate modal
+
+ // Certificate modal
 const modal = document.getElementById("certModal");
 const modalTitle = document.getElementById("modalTitle");
 const modalInfo = document.getElementById("modalInfo");
 const modalHint = document.getElementById("modalHint");
+const modalCertImage = document.getElementById("modalCertImage");
 
+// Buka modal sertifikat
 document.querySelectorAll(".view-cert").forEach((btn) => {
   btn.addEventListener("click", () => {
     if (!modal) return;
+
     const lang = localStorage.getItem("portfolio-language") || "id";
-    modalTitle.textContent = btn.dataset[`title${lang === "id" ? "Id" : "En"}`] || btn.dataset.title || "Certificate";
-    modalInfo.textContent = btn.dataset[`info${lang === "id" ? "Id" : "En"}`] || btn.dataset.info || "";
+
+    // Ambil judul
+    modalTitle.textContent =
+      btn.dataset[`title${lang === "id" ? "Id" : "En"}`] ||
+      btn.dataset.title ||
+      "Certificate";
+
+    // Ambil informasi
+    modalInfo.textContent =
+      btn.dataset[`info${lang === "id" ? "Id" : "En"}`] ||
+      btn.dataset.info ||
+      "";
+
+    // Ambil lokasi gambar dari tombol
+    const imagePath = btn.dataset.image?.trim();
+
+    // Reset gambar sebelumnya
+    if (modalCertImage) {
+      modalCertImage.hidden = true;
+      modalCertImage.removeAttribute("src");
+      modalCertImage.onerror = null;
+      modalCertImage.onload = null;
+    }
+
+    if (modalHint) {
+      modalHint.hidden = false;
+      modalHint.textContent = imagePath
+        ? "Memuat gambar sertifikat..."
+        : "Gambar sertifikat belum tersedia.";
+    }
+
+    // Tampilkan gambar sertifikat
+    if (imagePath && modalCertImage) {
+      modalCertImage.alt =
+        `Certificate preview: ${modalTitle.textContent}`;
+
+      modalCertImage.onload = () => {
+        modalCertImage.hidden = false;
+        if (modalHint) modalHint.hidden = true;
+      };
+
+      modalCertImage.onerror = () => {
+        modalCertImage.hidden = true;
+        if (modalHint) {
+          modalHint.hidden = false;
+          modalHint.textContent =
+            "Gambar tidak ditemukan. Periksa nama file dan lokasi gambar.";
+        }
+      };
+
+      modalCertImage.src = imagePath;
+    }
+
+    // Buka modal
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
   });
 });
 
-document.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", () => {
+// Tutup modal
+function closeCertificateModal() {
   modal?.classList.remove("open");
   modal?.setAttribute("aria-hidden", "true");
-}));
+}
+
+document.querySelectorAll("[data-close]").forEach((el) => {
+  el.addEventListener("click", closeCertificateModal);
+});
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    modal?.classList.remove("open");
-    modal?.setAttribute("aria-hidden", "true");
+    closeCertificateModal();
   }
 });
+
 
 // Apply saved language after all page elements exist.
 applyLanguage(localStorage.getItem("portfolio-language") || "id");
